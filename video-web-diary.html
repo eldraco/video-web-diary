@@ -9,14 +9,6 @@
             display: block;
             margin: 0 auto;
         }
-        #overlay {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            color: white;
-            font-size: 20px;
-            font-family: Arial, sans-serif;
-        }
         .frame {
             border: 5px solid #3498db;
             padding: 10px;
@@ -33,7 +25,7 @@
 <body>
     <h1>Local Video Diary</h1>
     <div class="frame">
-        <video id="video" width="640" height="480" autoplay></video>
+        <video id="video" width="640" height="480" autoplay style="display:none;"></video>
         <canvas id="canvas" width="640" height="480"></canvas>
     </div>
     <textarea id="notes" placeholder="Write your notes here..."></textarea>
@@ -52,7 +44,7 @@
         navigator.mediaDevices.getUserMedia({ video: true, audio: true })
             .then(stream => {
                 video.srcObject = stream;
-                mediaRecorder = new MediaRecorder(stream);
+                mediaRecorder = new MediaRecorder(canvas.captureStream(30));
                 mediaRecorder.ondataavailable = e => chunks.push(e.data);
                 mediaRecorder.onstop = saveFiles;
             });
