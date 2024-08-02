@@ -17,12 +17,26 @@
             font-size: 20px;
             font-family: Arial, sans-serif;
         }
+        .frame {
+            border: 5px solid #3498db;
+            padding: 10px;
+            display: inline-block;
+        }
+        #notes {
+            display: block;
+            margin: 20px auto;
+            width: 80%;
+            height: 100px;
+        }
     </style>
 </head>
 <body>
     <h1>Local Video Diary</h1>
-    <video id="video" width="640" height="480" autoplay></video>
-    <canvas id="canvas" width="640" height="480"></canvas>
+    <div class="frame">
+        <video id="video" width="640" height="480" autoplay></video>
+        <canvas id="canvas" width="640" height="480"></canvas>
+    </div>
+    <textarea id="notes" placeholder="Write your notes here..."></textarea>
     <button id="startButton">Start Recording</button>
     <button id="stopButton" disabled>Stop Recording</button>
     <script>
@@ -30,6 +44,7 @@
         const canvas = document.getElementById('canvas');
         const startButton = document.getElementById('startButton');
         const stopButton = document.getElementById('stopButton');
+        const notes = document.getElementById('notes');
         const context = canvas.getContext('2d');
         let mediaRecorder;
         let chunks = [];
@@ -39,18 +54,21 @@
                 video.srcObject = stream;
                 mediaRecorder = new MediaRecorder(stream);
                 mediaRecorder.ondataavailable = e => chunks.push(e.data);
-                mediaRecorder.onstop = saveVideo;
+                mediaRecorder.onstop = saveFiles;
             });
 
         function drawOverlay() {
             context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            context.strokeStyle = '#3498db';
+            context.lineWidth = 5;
+            context.strokeRect(5, 5, canvas.width - 10, canvas.height - 10);
             context.fillStyle = 'white';
             context.font = '20px Arial';
-            context.fillText(new Date().toLocaleString(), 10, 30);
+            context.fillText(new Date().toLocaleString(), 20, 40);
             requestAnimationFrame(drawOverlay);
         }
 
-        function saveVideo() {
+        function saveFiles() {
             const blob = new Blob(chunks, { type: 'video/webm' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -60,6 +78,17 @@
             document.body.appendChild(a);
             a.click();
             window.URL.revokeObjectURL(url);
+
+            const markdownContent = `# Video Diary Entry\n\n**Date:** ${new Date().toLocaleString()}\n\n**Notes:**\n\n${notes.value}`;
+            const markdownBlob = new Blob([markdownContent], { type: 'text/markdown' });
+            const markdownUrl = URL.createObjectURL(markdownBlob);
+            const b = document.createElement('a');
+            b.style.display = 'none';
+            b.href = markdownUrl;
+            b.download = `diary_${new Date().toISOString()}.md`;
+            document.body.appendChild(b);
+            b.click();
+            window.URL.revokeObjectURL(markdownUrl);
         }
 
         startButton.addEventListener('click', () => {
@@ -78,3 +107,4 @@
     </script>
 </body>
 </html>
+
