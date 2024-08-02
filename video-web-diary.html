@@ -41,10 +41,14 @@
         let mediaRecorder;
         let chunks = [];
 
-        navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+        navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 }, audio: true })
             .then(stream => {
                 video.srcObject = stream;
-                mediaRecorder = new MediaRecorder(canvas.captureStream(30));
+                const options = {
+                    mimeType: 'video/webm;codecs=vp9',
+                    videoBitsPerSecond: 1000000 // Adjust this value as needed for quality vs. size
+                };
+                mediaRecorder = new MediaRecorder(canvas.captureStream(30), options);
                 mediaRecorder.ondataavailable = e => chunks.push(e.data);
                 mediaRecorder.onstop = saveFiles;
             });
