@@ -25,7 +25,7 @@
 <body>
     <h1>Local Video Diary</h1>
     <div class="frame">
-        <video id="video" width="640" height="480" autoplay style="display:none;"></video>
+        <video id="video" width="640" height="480" autoplay muted></video>
         <canvas id="canvas" width="640" height="480"></canvas>
     </div>
     <textarea id="notes" placeholder="Write your notes here..."></textarea>
@@ -40,17 +40,19 @@
         const context = canvas.getContext('2d');
         let mediaRecorder;
         let chunks = [];
-        let audioStream;
+        let stream;
 
-        navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 }, audio: true })
-            .then(stream => {
+        // Ensure video element shows the webcam feed
+        navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+            .then(mediaStream => {
+                stream = mediaStream;
                 video.srcObject = stream;
-                audioStream = new MediaStream(stream.getAudioTracks());
+                console.log('Video stream started');
 
                 const canvasStream = canvas.captureStream(30);
                 const combinedStream = new MediaStream([
                     ...canvasStream.getVideoTracks(),
-                    ...audioStream.getAudioTracks()
+                    ...stream.getAudioTracks()
                 ]);
 
                 const options = {
@@ -60,9 +62,13 @@
                 mediaRecorder = new MediaRecorder(combinedStream, options);
                 mediaRecorder.ondataavailable = e => chunks.push(e.data);
                 mediaRecorder.onstop = saveFiles;
+            })
+            .catch(error => {
+                console.error('Error accessing media devices.', error);
             });
 
         function drawOverlay() {
+            // Ensure the video feed is drawn on the canvas
             context.drawImage(video, 0, 0, canvas.width, canvas.height);
             context.strokeStyle = '#3498db';
             context.lineWidth = 5;
@@ -99,13 +105,15 @@
         startButton.addEventListener('click', () => {
             chunks = [];
             mediaRecorder.start();
+            console.log('Recording started');
             startButton.disabled = true;
             stopButton.disabled = false;
-            requestAnimationFrame(drawOverlay);
+            drawOverlay();
         });
 
         stopButton.addEventListener('click', () => {
             mediaRecorder.stop();
+            console.log('Recording stopped');
             startButton.disabled = false;
             stopButton.disabled = true;
         });
