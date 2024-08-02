@@ -20,17 +20,20 @@
             width: 80%;
             height: 100px;
         }
+        #video {
+            display: none;
+        }
     </style>
 </head>
 <body>
     <h1>Local Video Diary</h1>
     <div class="frame">
-        <video id="video" width="640" height="480" autoplay muted></video>
         <canvas id="canvas" width="640" height="480"></canvas>
     </div>
     <textarea id="notes" placeholder="Write your notes here..."></textarea>
-    <button id="startButton">Start Recording</button>
+    <button id="startButton" disabled>Start Recording</button>
     <button id="stopButton" disabled>Stop Recording</button>
+    <video id="video" width="640" height="480" autoplay muted></video>
     <script>
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
@@ -49,19 +52,25 @@
                 video.srcObject = stream;
                 console.log('Video stream started');
 
-                const canvasStream = canvas.captureStream(30);
-                const combinedStream = new MediaStream([
-                    ...canvasStream.getVideoTracks(),
-                    ...stream.getAudioTracks()
-                ]);
+                video.onloadedmetadata = () => {
+                    video.play();
+                    const canvasStream = canvas.captureStream(30);
+                    const combinedStream = new MediaStream([
+                        ...canvasStream.getVideoTracks(),
+                        ...stream.getAudioTracks()
+                    ]);
 
-                const options = {
-                    mimeType: 'video/webm;codecs=vp9',
-                    videoBitsPerSecond: 1000000 // Adjust this value as needed for quality vs. size
+                    const options = {
+                        mimeType: 'video/webm;codecs=vp9',
+                        videoBitsPerSecond: 1000000 // Adjust this value as needed for quality vs. size
+                    };
+                    mediaRecorder = new MediaRecorder(combinedStream, options);
+                    mediaRecorder.ondataavailable = e => chunks.push(e.data);
+                    mediaRecorder.onstop = saveFiles;
+
+                    // Enable the start button once the mediaRecorder is ready
+                    startButton.disabled = false;
                 };
-                mediaRecorder = new MediaRecorder(combinedStream, options);
-                mediaRecorder.ondataavailable = e => chunks.push(e.data);
-                mediaRecorder.onstop = saveFiles;
             })
             .catch(error => {
                 console.error('Error accessing media devices.', error);
