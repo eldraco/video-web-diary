@@ -40,15 +40,24 @@
         const context = canvas.getContext('2d');
         let mediaRecorder;
         let chunks = [];
+        let audioStream;
 
         navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 }, audio: true })
             .then(stream => {
                 video.srcObject = stream;
+                audioStream = new MediaStream(stream.getAudioTracks());
+
+                const canvasStream = canvas.captureStream(30);
+                const combinedStream = new MediaStream([
+                    ...canvasStream.getVideoTracks(),
+                    ...audioStream.getAudioTracks()
+                ]);
+
                 const options = {
                     mimeType: 'video/webm;codecs=vp9',
                     videoBitsPerSecond: 1000000 // Adjust this value as needed for quality vs. size
                 };
-                mediaRecorder = new MediaRecorder(canvas.captureStream(30), options);
+                mediaRecorder = new MediaRecorder(combinedStream, options);
                 mediaRecorder.ondataavailable = e => chunks.push(e.data);
                 mediaRecorder.onstop = saveFiles;
             });
