@@ -57,10 +57,22 @@
         #video {
             display: none;
         }
+        .overlay-options {
+            text-align: left;
+            display: inline-block;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
     <h1>Video Diary</h1>
+    <div class="overlay-options">
+        <label><input type="checkbox" name="overlay" value="datetime"> Date and Time</label><br>
+        <label><input type="checkbox" name="overlay" value="ip"> IP Address</label><br>
+        <label><input type="checkbox" name="overlay" value="city"> City</label><br>
+        <label><input type="checkbox" name="overlay" value="weather"> Weather</label><br>
+        <label><input type="checkbox" name="overlay" value="ping"> Roundtrip Time</label>
+    </div>
     <div class="frame">
         <canvas id="canvas" width="640" height="480"></canvas>
     </div>
@@ -78,6 +90,19 @@
         let mediaRecorder;
         let chunks = [];
         let stream;
+        let overlayOptions = [];
+        let ipInfo = { local: '', public: '', city: '', weather: '', ping: '' };
+
+        document.querySelectorAll('input[name="overlay"]').forEach(checkbox => {
+            checkbox.addEventListener('change', event => {
+                const value = event.target.value;
+                if (event.target.checked) {
+                    overlayOptions.push(value);
+                } else {
+                    overlayOptions = overlayOptions.filter(option => option !== value);
+                }
+            });
+        });
 
         // Ensure video element shows the webcam feed
         navigator.mediaDevices.getUserMedia({ video: true, audio: true })
@@ -104,6 +129,9 @@
 
                     // Enable the start button once the mediaRecorder is ready
                     startButton.disabled = false;
+
+                    // Get IP and location information
+                    getIPInfo();
                 };
             })
             .catch(error => {
@@ -118,8 +146,63 @@
             context.strokeRect(5, 5, canvas.width - 10, canvas.height - 10);
             context.fillStyle = 'white';
             context.font = '20px Arial';
-            context.fillText(new Date().toLocaleString(), 20, 40);
+
+            let yOffset = 40;
+            overlayOptions.forEach(option => {
+                switch (option) {
+                    case 'datetime':
+                        context.fillText(new Date().toLocaleString(), 20, yOffset);
+                        yOffset += 30;
+                        break;
+                    case 'ip':
+                        context.fillText(`Public IP: ${ipInfo.public}`, 20, yOffset);
+                        yOffset += 30;
+                        break;
+                    case 'city':
+                        context.fillText(`City: ${ipInfo.city}`, 20, yOffset);
+                        yOffset += 30;
+                        break;
+                    case 'weather':
+                        context.fillText(`Weather: ${ipInfo.weather}`, 20, yOffset);
+                        yOffset += 30;
+                        break;
+                    case 'ping':
+                        context.fillText(`Ping: ${ipInfo.ping} ms`, 20, yOffset);
+                        yOffset += 30;
+                        break;
+                }
+            });
+
             requestAnimationFrame(drawOverlay);
+        }
+
+        async function getIPInfo() {
+            try {
+                const publicIpResponse = await fetch('https://api.ipify.org?format=json');
+                const publicIpData = await publicIpResponse.json();
+                ipInfo.public = publicIpData.ip;
+
+                const locationResponse = await fetch(`https://ipapi.co/${ipInfo.public}/json/`);
+                const locationData = await locationResponse.json();
+                ipInfo.city = locationData.city;
+
+                const weatherResponse = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${locationData.latitude}&longitude=${locationData.longitude}&current_weather=true`);
+                const weatherData = await weatherResponse.json();
+                ipInfo.weather = `${weatherData.current_weather.weathercode}, ${weatherData.current_weather.temperature}°C`;
+
+                setInterval(async () => {
+                    ipInfo.ping = await calculatePing('https://www.google.com');
+                }, 1000);
+
+            } catch (error) {
+                console.error('Error fetching IP information', error);
+            }
+        }
+
+        async function calculatePing(url) {
+            const start = Date.now();
+            await fetch(url);
+            return Date.now() - start;
         }
 
         function saveFiles() {
@@ -162,5 +245,5 @@
         });
     </script>
 </body>
-</html>
+</html
 
