@@ -192,6 +192,7 @@
 
                 setInterval(async () => {
                     ipInfo.ping = await calculatePing('https://www.google.com');
+                    console.log(`Ping: ${ipInfo.ping} ms`);
                 }, 1000);
 
             } catch (error) {
@@ -202,7 +203,8 @@
         async function calculatePing(url) {
             const start = Date.now();
             await fetch(url);
-            return Date.now() - start;
+            const end = Date.now();
+            return end - start;
         }
 
         function saveFiles() {
@@ -245,5 +247,5 @@
         });
     </script>
 </body>
-</html
+</html>
 
