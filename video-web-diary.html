@@ -9,19 +9,41 @@
         body {
             font-family: 'Roboto', sans-serif;
             text-align: center;
-            background-color: #f0f0f0;
+            background-color: #101010;
+            color: #00ffcc;
             margin: 0;
             padding: 20px;
         }
         h1 {
             font-weight: 700;
             margin-bottom: 20px;
+            text-shadow: 0 0 10px #00ffcc, 0 0 20px #00ffcc;
         }
         .frame {
-            border: 5px solid #3498db;
+            border: 10px solid #3498db;
             padding: 10px;
             display: inline-block;
-            background-color: white;
+            background-color: #1a1a1a;
+            box-shadow: 0 0 15px #00ffcc, 0 0 30px #00ffcc;
+            border-radius: 15px;
+            position: relative;
+        }
+        .frame::before, .frame::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 2px solid #00ffcc;
+            border-radius: 15px;
+            top: -10px;
+            left: -10px;
+            box-shadow: 0 0 10px #00ffcc, 0 0 20px #00ffcc;
+            z-index: -1;
+        }
+        .frame::after {
+            top: 10px;
+            left: 10px;
+            border-color: #3498db;
         }
         #notes {
             display: block;
@@ -30,9 +52,11 @@
             max-width: 640px;
             height: 100px;
             padding: 10px;
-            border: 1px solid #ccc;
+            border: 1px solid #00ffcc;
             border-radius: 4px;
             font-family: 'Roboto', sans-serif;
+            background-color: #1a1a1a;
+            color: #00ffcc;
         }
         button {
             display: inline-block;
@@ -40,19 +64,23 @@
             padding: 10px 20px;
             font-size: 16px;
             font-family: 'Roboto', sans-serif;
-            border: none;
+            border: 2px solid #00ffcc;
             border-radius: 4px;
             cursor: pointer;
-            background-color: #3498db;
-            color: white;
+            background-color: #1a1a1a;
+            color: #00ffcc;
+            box-shadow: 0 0 10px #00ffcc, 0 0 20px #00ffcc;
         }
         button:disabled {
             background-color: #cccccc;
             cursor: not-allowed;
+            color: #333333;
+            box-shadow: none;
         }
         video, canvas {
             display: block;
             margin: 0 auto;
+            border-radius: 10px;
         }
         #video {
             display: none;
@@ -62,16 +90,19 @@
             display: inline-block;
             margin-top: 20px;
         }
+        .overlay-options label {
+            color: #00ffcc;
+        }
     </style>
 </head>
 <body>
     <h1>Video Diary</h1>
     <div class="overlay-options">
-        <label><input type="checkbox" name="overlay" value="datetime"> Date and Time</label><br>
-        <label><input type="checkbox" name="overlay" value="ip"> IP Address</label><br>
-        <label><input type="checkbox" name="overlay" value="city"> City</label><br>
-        <label><input type="checkbox" name="overlay" value="weather"> Weather</label><br>
-        <label><input type="checkbox" name="overlay" value="ping"> Roundtrip Time</label>
+        <label><input type="checkbox" name="overlay" value="datetime" checked> Date and Time</label><br>
+        <label><input type="checkbox" name="overlay" value="ip" checked> IP Address</label><br>
+        <label><input type="checkbox" name="overlay" value="city" checked> City</label><br>
+        <label><input type="checkbox" name="overlay" value="weather" checked> Weather</label><br>
+        <label><input type="checkbox" name="overlay" value="ping" checked> Roundtrip Time</label>
     </div>
     <div class="frame">
         <canvas id="canvas" width="640" height="480"></canvas>
@@ -81,6 +112,7 @@
     <button id="stopButton" disabled>Stop Recording</button>
     <video id="video" width="640" height="480" autoplay muted></video>
     <script>
+        // Existing JavaScript code here
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
         const startButton = document.getElementById('startButton');
@@ -90,7 +122,7 @@
         let mediaRecorder;
         let chunks = [];
         let stream;
-        let overlayOptions = [];
+        let overlayOptions = ['datetime', 'ip', 'city', 'weather', 'ping'];
         let ipInfo = { local: '', public: '', city: '', weather: '', ping: '' };
 
         document.querySelectorAll('input[name="overlay"]').forEach(checkbox => {
@@ -141,10 +173,10 @@
         function drawOverlay() {
             // Ensure the video feed is drawn on the canvas
             context.drawImage(video, 0, 0, canvas.width, canvas.height);
-            context.strokeStyle = '#3498db';
+            context.strokeStyle = '#00ffcc';
             context.lineWidth = 5;
             context.strokeRect(5, 5, canvas.width - 10, canvas.height - 10);
-            context.fillStyle = 'white';
+            context.fillStyle = '#00ffcc';
             context.font = '20px Arial';
 
             let yOffset = 40;
