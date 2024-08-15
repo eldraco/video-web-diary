@@ -112,7 +112,6 @@
     <button id="stopButton" disabled>Stop Recording</button>
     <video id="video" width="640" height="480" autoplay muted></video>
     <script>
-        // Existing JavaScript code here
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
         const startButton = document.getElementById('startButton');
@@ -240,23 +239,28 @@
         }
 
         function saveFiles() {
+            const timestamp = new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-');
+            const filename = `diary_${timestamp}`;
+
+            // Save video file
             const blob = new Blob(chunks, { type: 'video/webm' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.style.display = 'none';
             a.href = url;
-            a.download = `diary_${new Date().toISOString()}.webm`;
+            a.download = `${filename}.webm`;
             document.body.appendChild(a);
             a.click();
             window.URL.revokeObjectURL(url);
 
+            // Save markdown file
             const markdownContent = `# Video Diary Entry\n\n**Date:** ${new Date().toLocaleString()}\n\n**Notes:**\n\n${notes.value}`;
             const markdownBlob = new Blob([markdownContent], { type: 'text/markdown' });
             const markdownUrl = URL.createObjectURL(markdownBlob);
             const b = document.createElement('a');
             b.style.display = 'none';
             b.href = markdownUrl;
-            b.download = `diary_${new Date().toISOString()}.md`;
+            b.download = `${filename}.md`;
             document.body.appendChild(b);
             b.click();
             window.URL.revokeObjectURL(markdownUrl);
