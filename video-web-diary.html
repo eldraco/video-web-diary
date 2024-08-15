@@ -8,25 +8,48 @@
     <style>
         body {
             font-family: 'Roboto', sans-serif;
-            text-align: center;
             background-color: #101010;
             color: #00ffcc;
             margin: 0;
             padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
         }
         h1 {
             font-weight: 700;
-            margin-bottom: 20px;
             text-shadow: 0 0 10px #00ffcc, 0 0 20px #00ffcc;
+            margin-bottom: 20px;
+        }
+        .container {
+            position: relative;
+            display: inline-block;
+        }
+        .overlay-options {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            text-align: left;
+        }
+        .overlay-options label {
+            color: #00ffcc;
+        }
+        .button-group {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
         .frame {
             border: 10px solid #3498db;
             padding: 10px;
-            display: inline-block;
             background-color: #1a1a1a;
             box-shadow: 0 0 15px #00ffcc, 0 0 30px #00ffcc;
             border-radius: 15px;
-            position: relative;
         }
         .frame::before, .frame::after {
             content: '';
@@ -45,22 +68,7 @@
             left: 10px;
             border-color: #3498db;
         }
-        #notes {
-            display: block;
-            margin: 20px auto;
-            width: 80%;
-            max-width: 640px;
-            height: 100px;
-            padding: 10px;
-            border: 1px solid #00ffcc;
-            border-radius: 4px;
-            font-family: 'Roboto', sans-serif;
-            background-color: #1a1a1a;
-            color: #00ffcc;
-        }
         button {
-            display: inline-block;
-            margin: 10px;
             padding: 10px 20px;
             font-size: 16px;
             font-family: 'Roboto', sans-serif;
@@ -70,6 +78,7 @@
             background-color: #1a1a1a;
             color: #00ffcc;
             box-shadow: 0 0 10px #00ffcc, 0 0 20px #00ffcc;
+            display: inline-block;
         }
         button:disabled {
             background-color: #cccccc;
@@ -85,31 +94,40 @@
         #video {
             display: none;
         }
-        .overlay-options {
-            text-align: left;
-            display: inline-block;
-            margin-top: 20px;
-        }
-        .overlay-options label {
+        #notes {
+            display: block;
+            margin: 20px auto;
+            width: 80%;
+            max-width: 640px;
+            height: 100px;
+            padding: 10px;
+            border: 1px solid #00ffcc;
+            border-radius: 4px;
+            font-family: 'Roboto', sans-serif;
+            background-color: #1a1a1a;
             color: #00ffcc;
         }
     </style>
 </head>
 <body>
     <h1>Video Diary</h1>
-    <div class="overlay-options">
-        <label><input type="checkbox" name="overlay" value="datetime" checked> Date and Time</label><br>
-        <label><input type="checkbox" name="overlay" value="ip" checked> IP Address</label><br>
-        <label><input type="checkbox" name="overlay" value="city" checked> City</label><br>
-        <label><input type="checkbox" name="overlay" value="weather" checked> Weather</label><br>
-        <label><input type="checkbox" name="overlay" value="ping" checked> Roundtrip Time</label>
-    </div>
-    <div class="frame">
-        <canvas id="canvas" width="640" height="480"></canvas>
+    <div class="container">
+        <div class="overlay-options">
+            <label><input type="checkbox" name="overlay" value="datetime" checked> Date and Time</label><br>
+            <label><input type="checkbox" name="overlay" value="ip" checked> IP Address</label><br>
+            <label><input type="checkbox" name="overlay" value="city" checked> City</label><br>
+            <label><input type="checkbox" name="overlay" value="weather" checked> Weather</label><br>
+            <label><input type="checkbox" name="overlay" value="ping" checked> Roundtrip Time</label>
+        </div>
+        <div class="button-group">
+            <button id="startButton" disabled>Start Recording</button>
+            <button id="stopButton" disabled>Stop Recording</button>
+        </div>
+        <div class="frame">
+            <canvas id="canvas" width="640" height="480"></canvas>
+        </div>
     </div>
     <textarea id="notes" placeholder="Write your notes here..."></textarea>
-    <button id="startButton" disabled>Start Recording</button>
-    <button id="stopButton" disabled>Stop Recording</button>
     <video id="video" width="640" height="480" autoplay muted></video>
     <script>
         const video = document.getElementById('video');
