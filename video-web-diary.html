@@ -26,11 +26,12 @@
         .container {
             position: relative;
             display: inline-block;
+            margin-bottom: 20px;
         }
         .overlay-options {
             position: absolute;
-            top: 10px;
-            left: 10px;
+            top: 0;
+            left: -160px;
             text-align: left;
         }
         .overlay-options label {
@@ -38,8 +39,8 @@
         }
         .button-group {
             position: absolute;
-            top: 10px;
-            right: 10px;
+            top: 0;
+            right: -180px;
             display: flex;
             flex-direction: column;
             gap: 10px;
@@ -86,13 +87,10 @@
             color: #333333;
             box-shadow: none;
         }
-        video, canvas {
+        canvas {
             display: block;
             margin: 0 auto;
             border-radius: 10px;
-        }
-        #video {
-            display: none;
         }
         #notes {
             display: block;
@@ -128,9 +126,7 @@
         </div>
     </div>
     <textarea id="notes" placeholder="Write your notes here..."></textarea>
-    <video id="video" width="640" height="480" autoplay muted></video>
     <script>
-        const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
         const startButton = document.getElementById('startButton');
         const stopButton = document.getElementById('stopButton');
@@ -153,15 +149,17 @@
             });
         });
 
-        // Ensure video element shows the webcam feed
+        // Ensure video stream is loaded into the canvas
         navigator.mediaDevices.getUserMedia({ video: true, audio: true })
             .then(mediaStream => {
                 stream = mediaStream;
-                video.srcObject = stream;
-                console.log('Video stream started');
+                const videoElement = document.createElement('video');
+                videoElement.srcObject = stream;
+                videoElement.play();
 
-                video.onloadedmetadata = () => {
-                    video.play();
+                videoElement.onloadedmetadata = () => {
+                    drawOverlay(videoElement);
+
                     const canvasStream = canvas.captureStream(30);
                     const combinedStream = new MediaStream([
                         ...canvasStream.getVideoTracks(),
@@ -187,42 +185,44 @@
                 console.error('Error accessing media devices.', error);
             });
 
-        function drawOverlay() {
-            // Ensure the video feed is drawn on the canvas
-            context.drawImage(video, 0, 0, canvas.width, canvas.height);
-            context.strokeStyle = '#00ffcc';
-            context.lineWidth = 5;
-            context.strokeRect(5, 5, canvas.width - 10, canvas.height - 10);
-            context.fillStyle = '#00ffcc';
-            context.font = '20px Arial';
+        function drawOverlay(video) {
+            function draw() {
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                context.strokeStyle = '#00ffcc';
+                context.lineWidth = 5;
+                context.strokeRect(5, 5, canvas.width - 10, canvas.height - 10);
+                context.fillStyle = '#00ffcc';
+                context.font = '20px Arial';
 
-            let yOffset = 40;
-            overlayOptions.forEach(option => {
-                switch (option) {
-                    case 'datetime':
-                        context.fillText(new Date().toLocaleString(), 20, yOffset);
-                        yOffset += 30;
-                        break;
-                    case 'ip':
-                        context.fillText(`Public IP: ${ipInfo.public}`, 20, yOffset);
-                        yOffset += 30;
-                        break;
-                    case 'city':
-                        context.fillText(`City: ${ipInfo.city}`, 20, yOffset);
-                        yOffset += 30;
-                        break;
-                    case 'weather':
-                        context.fillText(`Weather: ${ipInfo.weather}`, 20, yOffset);
-                        yOffset += 30;
-                        break;
-                    case 'ping':
-                        context.fillText(`Ping: ${ipInfo.ping} ms`, 20, yOffset);
-                        yOffset += 30;
-                        break;
-                }
-            });
+                let yOffset = 40;
+                overlayOptions.forEach(option => {
+                    switch (option) {
+                        case 'datetime':
+                            context.fillText(new Date().toLocaleString(), 20, yOffset);
+                            yOffset += 30;
+                            break;
+                        case 'ip':
+                            context.fillText(`Public IP: ${ipInfo.public}`, 20, yOffset);
+                            yOffset += 30;
+                            break;
+                        case 'city':
+                            context.fillText(`City: ${ipInfo.city}`, 20, yOffset);
+                            yOffset += 30;
+                            break;
+                        case 'weather':
+                            context.fillText(`Weather: ${ipInfo.weather}`, 20, yOffset);
+                            yOffset += 30;
+                            break;
+                        case 'ping':
+                            context.fillText(`Ping: ${ipInfo.ping} ms`, 20, yOffset);
+                            yOffset += 30;
+                            break;
+                    }
+                });
 
-            requestAnimationFrame(drawOverlay);
+                requestAnimationFrame(draw);
+            }
+            draw();
         }
 
         async function getIPInfo() {
@@ -290,7 +290,6 @@
             console.log('Recording started');
             startButton.disabled = true;
             stopButton.disabled = false;
-            drawOverlay();
         });
 
         stopButton.addEventListener('click', () => {
